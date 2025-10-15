@@ -1,0 +1,251 @@
+{
+  "version": "2.2",
+  "project": "SAR360-AnaliticaCrediticia",
+  "created": "2025-10-15",
+  "model_type": "estrella",
+  "tables": {
+    "DIM_TIEMPO": {
+      "pk": ["id_fecha"],
+      "type": "dimension",
+      "columns": {
+        "id_fecha": "INT",
+        "fecha": "DATE",
+        "anio": "INT",
+        "mes": "INT",
+        "trimestre": "INT",
+        "semana": "INT",
+        "dia_mes": "INT",
+        "dia_semana": "INT",
+        "fin_mes": "BOOLEAN",
+        "dia_habil": "BOOLEAN",
+        "periodo_regulatorio": "VARCHAR(20)"
+      },
+      "indexes": ["fecha", "anio", "mes"]
+    },
+    "DIM_CLIENTE": {
+      "pk": ["id_cliente"],
+      "type": "dimension",
+      "scd_type": 2,
+      "columns": {
+        "id_cliente": "INT",
+        "codigo_cliente": "VARCHAR(50)",
+        "segmento": "VARCHAR(30)",
+        "score_crediticio": "INT",
+        "banda_ingresos": "VARCHAR(20)",
+        "antigüedad_meses": "INT",
+        "region": "VARCHAR(50)",
+        "estado": "VARCHAR(50)",
+        "ciudad": "VARCHAR(100)",
+        "fecha_inicio": "DATE",
+        "fecha_fin": "DATE",
+        "activo": "BOOLEAN"
+      },
+      "indexes": ["codigo_cliente", "segmento", "region"]
+    },
+    "DIM_PRODUCTO": {
+      "pk": ["id_producto"],
+      "type": "dimension",
+      "columns": {
+        "id_producto": "INT",
+        "codigo_producto": "VARCHAR(30)",
+        "linea_negocio": "VARCHAR(50)",
+        "producto": "VARCHAR(100)",
+        "sub_producto": "VARCHAR(100)",
+        "proposito": "VARCHAR(50)",
+        "tipo_garantia": "VARCHAR(30)",
+        "plazo_max_meses": "INT",
+        "tasa_min": "DECIMAL(5,4)",
+        "tasa_max": "DECIMAL(5,4)"
+      },
+      "indexes": ["linea_negocio", "producto"]
+    },
+    "DIM_RIESGO": {
+      "pk": ["id_riesgo"],
+      "type": "dimension",
+      "scd_type": 2,
+      "columns": {
+        "id_riesgo": "INT",
+        "rating": "VARCHAR(10)",
+        "grade": "VARCHAR(5)",
+        "sub_grade": "VARCHAR(5)",
+        "pd_banda": "VARCHAR(20)",
+        "lgd_banda": "VARCHAR(20)",
+        "ead_banda": "VARCHAR(20)",
+        "vintage": "VARCHAR(10)",
+        "fecha_inicio": "DATE",
+        "fecha_fin": "DATE",
+        "activo": "BOOLEAN"
+      },
+      "indexes": ["grade", "rating", "vintage"]
+    },
+    "DIM_GEOGRAFIA": {
+      "pk": ["id_geografia"],
+      "type": "dimension",
+      "columns": {
+        "id_geografia": "INT",
+        "pais": "VARCHAR(50)",
+        "region": "VARCHAR(50)",
+        "estado": "VARCHAR(50)",
+        "ciudad": "VARCHAR(100)",
+        "codigo_postal": "VARCHAR(10)",
+        "pib_regional": "DECIMAL(15,2)",
+        "tasa_desempleo": "DECIMAL(5,2)",
+        "indice_desarrollo": "DECIMAL(5,2)"
+      },
+      "indexes": ["region", "estado"]
+    },
+    "FACT_LOANS": {
+      "pk": ["id_loan"],
+      "type": "fact",
+      "partition": "id_fecha",
+      "fk": {
+        "id_fecha": "DIM_TIEMPO.id_fecha",
+        "id_cliente": "DIM_CLIENTE.id_cliente",
+        "id_producto": "DIM_PRODUCTO.id_producto",
+        "id_riesgo": "DIM_RIESGO.id_riesgo",
+        "id_geografia": "DIM_GEOGRAFIA.id_geografia"
+      },
+      "columns": {
+        "id_loan": "BIGINT",
+        "id_fecha": "INT",
+        "id_cliente": "INT",
+        "id_producto": "INT",
+        "id_riesgo": "INT",
+        "id_geografia": "INT",
+        "numero_prestamo": "VARCHAR(50)",
+        "fecha_originacion": "DATE",
+        "monto_solicitado": "DECIMAL(15,2)",
+        "monto_aprobado": "DECIMAL(15,2)",
+        "monto_desembolsado": "DECIMAL(15,2)",
+        "tasa_interes": "DECIMAL(5,4)",
+        "plazo_meses": "INT",
+        "cuota_mensual": "DECIMAL(10,2)",
+        "saldo_capital": "DECIMAL(15,2)",
+        "dias_mora": "INT",
+        "loan_status": "VARCHAR(20)",
+        "default_flag": "BOOLEAN",
+        "pd_score": "DECIMAL(5,4)",
+        "lgd_score": "DECIMAL(5,4)",
+        "ead_score": "DECIMAL(5,4)",
+        "perdida_esperada": "DECIMAL(15,2)",
+        "provision_constituida": "DECIMAL(15,2)",
+        "ingresos_acumulados": "DECIMAL(15,2)",
+        "gastos_acumulados": "DECIMAL(15,2)"
+      },
+      "indexes": [
+        "id_fecha",
+        "id_cliente", 
+        "loan_status",
+        "default_flag",
+        ["id_fecha", "loan_status"],
+        ["id_cliente", "id_fecha"]
+      ]
+    },
+    "FACT_PAYMENTS": {
+      "pk": ["id_payment"],
+      "type": "fact",
+      "partition": "id_fecha_pago",
+      "fk": {
+        "id_loan": "FACT_LOANS.id_loan",
+        "id_fecha_pago": "DIM_TIEMPO.id_fecha"
+      },
+      "columns": {
+        "id_payment": "BIGINT",
+        "id_loan": "BIGINT",
+        "id_fecha_pago": "INT",
+        "numero_cuota": "INT",
+        "monto_pago": "DECIMAL(10,2)",
+        "capital_pagado": "DECIMAL(10,2)",
+        "interes_pagado": "DECIMAL(10,2)",
+        "mora_pagada": "DECIMAL(10,2)",
+        "otros_pagos": "DECIMAL(10,2)",
+        "dias_atraso": "INT",
+        "tipo_pago": "VARCHAR(20)"
+      },
+      "indexes": ["id_loan", "id_fecha_pago"]
+    },
+    "FACT_RECOVERIES": {
+      "pk": ["id_recovery"],
+      "type": "fact",
+      "fk": {
+        "id_loan": "FACT_LOANS.id_loan",
+        "id_fecha_recovery": "DIM_TIEMPO.id_fecha"
+      },
+      "columns": {
+        "id_recovery": "BIGINT",
+        "id_loan": "BIGINT",
+        "id_fecha_recovery": "INT",
+        "monto_recuperado": "DECIMAL(10,2)",
+        "costo_cobranza": "DECIMAL(10,2)",
+        "tipo_accion": "VARCHAR(30)",
+        "canal_cobranza": "VARCHAR(20)",
+        "efectividad_pct": "DECIMAL(5,2)"
+      },
+      "indexes": ["id_loan", "id_fecha_recovery"]
+    },
+    "FACT_PROVISIONS": {
+      "pk": ["id_provision"],
+      "type": "fact",
+      "fk": {
+        "id_loan": "FACT_LOANS.id_loan",
+        "id_fecha_provision": "DIM_TIEMPO.id_fecha"
+      },
+      "columns": {
+        "id_provision": "BIGINT",
+        "id_loan": "BIGINT",
+        "id_fecha_provision": "INT",
+        "provision_individual": "DECIMAL(15,2)",
+        "provision_colectiva": "DECIMAL(15,2)",
+        "provision_ciclica": "DECIMAL(15,2)",
+        "provision_total": "DECIMAL(15,2)",
+        "categoria_riesgo": "VARCHAR(5)",
+        "metodo_calculo": "VARCHAR(20)"
+      },
+      "indexes": ["id_loan", "id_fecha_provision", "categoria_riesgo"]
+    }
+  },
+  "views": {
+    "VW_PORTFOLIO_PERFORMANCE": {
+      "description": "Métricas agregadas del portafolio por período",
+      "key_metrics": ["pd_promedio", "lgd_promedio", "ead_promedio", "perdida_esperada_total"]
+    },
+    "VW_RISK_CONCENTRATION": {
+      "description": "Concentración de riesgo por dimensiones",
+      "key_metrics": ["exposicion_por_region", "exposicion_por_producto", "limites_concentracion"]
+    },
+    "VW_VINTAGE_ANALYSIS": {
+      "description": "Análisis de cohortes por vintage de originación",
+      "key_metrics": ["default_rate_acumulada", "curva_perdidas", "madurez_promedio"]
+    },
+    "VW_REGULATORY_REPORTING": {
+      "description": "KPIs para reportes regulatorios SAR",
+      "key_metrics": ["indice_morosidad", "cobertura_provisiones", "concentracion_sectorial"]
+    },
+    "VW_PROFITABILITY_ANALYSIS": {
+      "description": "Análisis de rentabilidad ajustada por riesgo",
+      "key_metrics": ["raroc", "ingresos_netos", "costo_credito", "eficiencia_capital"]
+    }
+  },
+  "business_rules": {
+    "default_definition": "Préstamo con >90 días de mora o charge-off",
+    "vintage_grouping": "Por trimestre de originación",
+    "risk_appetite": "Exposición máxima 5% por región, 15% por producto",
+    "provision_methodology": "IFRS 9 - Expected Credit Loss",
+    "reporting_frequency": "Mensual con cierre T+2"
+  },
+  "data_quality_rules": {
+    "completeness": {
+      "loan_amount": "100%",
+      "interest_rate": "100%", 
+      "customer_segment": "95%",
+      "geographic_data": "90%"
+    },
+    "validity": {
+      "pd_score": "0 <= valor <= 1",
+      "lgd_score": "0 <= valor <= 1", 
+      "ead_score": "0 <= valor <= 1.5",
+      "loan_status": "['current', 'late', 'default', 'paid_off', 'charged_off']"
+    }
+  },
+  "notes": "Modelo estrella optimizado para analítica de riesgo crediticio. Incluye dimensiones SCD Tipo 2 para tracking histórico de cambios en riesgo. Particionamiento por fecha para optimizar queries temporales."
+}
