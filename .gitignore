@@ -1,0 +1,80 @@
+# Environments
+.venv_*
+venv_*
+.env
+.conda/
+conda_env/
+
+# Data files (excluded from repo but tracked locally)
+data/raw/*
+data/interim/*
+data/processed/*
+!data/.gitkeep
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# Logs and errors
+logs/*
+data/errors/*
+!logs/.gitkeep
+!data/errors/.gitkeep
+
+# Models and artifacts
+models/*
+!models/.gitkeep
+mlruns/
+wandb/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
