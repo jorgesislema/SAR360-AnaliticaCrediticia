@@ -1,0 +1,149 @@
+# Configuración del modelo LGD (Loss Given Default)
+model:
+  name: "lgd_model"
+  type: "regression"
+  algorithm: "lightgbm"  # xgboost, lightgbm, catboost
+  
+  # Parámetros del modelo
+  hyperparameters:
+    n_estimators: 1000
+    max_depth: 6
+    learning_rate: 0.05
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0.1
+    reg_lambda: 1.0
+    random_state: 42
+    n_jobs: -1
+    objective: "regression"
+    metric: "rmse"
+    
+  # Cross-validation
+  cv:
+    n_splits: 5
+    random_state: 42
+
+# Features engineering
+features:
+  target_variable: "loss_rate"  # Pérdida / Exposición al momento del default
+  
+  # Filtro: Solo observaciones con default_flag = 1
+  filter_condition: "default_flag == 1"
+  
+  # Features categóricas específicas para LGD
+  categorical_features:
+    - "grade"
+    - "sub_grade"
+    - "purpose"
+    - "home_ownership"
+    - "verification_status"
+    - "addr_state"
+    - "application_type"
+    - "recovery_type"  # Si disponible
+    - "collateral_type"  # Si disponible
+    
+  # Features numéricas para LGD
+  numerical_features:
+    - "loan_amnt"
+    - "funded_amnt"
+    - "int_rate"
+    - "installment"
+    - "annual_inc"
+    - "dti"
+    - "fico_range_low"
+    - "fico_range_high"
+    - "revol_bal"
+    - "revol_util"
+    - "total_acc"
+    - "open_acc"
+    - "total_pymnt"
+    - "total_rec_prncp"
+    - "total_rec_int"
+    - "recoveries"
+    - "collection_recovery_fee"
+    - "time_to_default"  # Derivada: meses desde originación hasta default
+    - "ltv_ratio"  # Loan-to-Value si disponible
+    - "debt_service_ratio"
+    - "utilization_trend"  # Derivada
+    
+  # Features derivadas específicas LGD
+  derived_features:
+    - "recovery_rate"  # recoveries / funded_amnt
+    - "payment_efficiency"  # total_pymnt / installment esperado
+    - "principal_recovery_rate"  # total_rec_prncp / funded_amnt
+    - "interest_recovery_rate"  # total_rec_int / interés esperado
+    - "vintage_effect"  # Año de originación
+    - "seasoning_at_default"  # Madurez del préstamo al default
+
+# Data processing
+data:
+  train_size: 0.7
+  val_size: 0.15
+  test_size: 0.15
+  random_state: 42
+  
+  # Target transformation
+  target_transformation: "beta"  # beta, logit, none
+  target_bounds: [0.0, 1.0]  # LGD entre 0% y 100%
+  
+  # Handling missing values
+  missing_strategy:
+    numerical: "median"
+    categorical: "mode"
+    
+  # Outlier handling más conservador para LGD
+  outlier_method: "iqr"
+  outlier_threshold: 2.0
+
+# Métricas de evaluación específicas para LGD
+metrics:
+  primary: "rmse"
+  secondary:
+    - "mae"
+    - "mape"
+    - "r2_score"
+    - "mean_squared_log_error"
+    
+  # Métricas específicas de LGD
+  lgd_metrics:
+    - "directional_accuracy"  # % predicciones en dirección correcta
+    - "concentration_ratio"   # Concentración de pérdidas predichas vs reales
+    - "downturn_adjustment"   # Ajuste para condiciones adversas
+    - "recovery_correlation"  # Correlación con tasas de recuperación
+
+# Validación específica LGD
+validation:
+  # Backtesting específico
+  backtesting:
+    window_months: 24
+    overlapping_windows: true
+    downturn_scenarios: true
+    
+  # Benchmarking
+  benchmarks:
+    - "historical_average"
+    - "grade_average"
+    - "vintage_average"
+    - "regulatory_benchmark"
+
+# Monitoreo LGD
+monitoring:
+  enable_drift_detection: true
+  key_metrics:
+    - "average_lgd"
+    - "lgd_volatility"
+    - "recovery_rate_trend"
+  alert_thresholds:
+    lgd_increase: 0.05  # 5% increase triggers alert
+    recovery_decrease: 0.10  # 10% decrease triggers alert
+
+# Regulatorio - LGD específico
+regulatory:
+  basel_compliance: true
+  downturn_lgd: true
+  margin_of_conservatism: 0.05  # 5% adicional
+  workout_period: 24  # meses para considerar recovery completa
+  economic_scenarios:
+    - "baseline"
+    - "adverse"
+    - "severely_adverse"
