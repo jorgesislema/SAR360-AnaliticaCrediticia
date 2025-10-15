@@ -1,0 +1,187 @@
+# Configuración del modelo EAD (Exposure at Default)
+model:
+  name: "ead_model"
+  type: "regression"
+  algorithm: "xgboost"  # xgboost, lightgbm, catboost
+  
+  # Parámetros del modelo
+  hyperparameters:
+    n_estimators: 800
+    max_depth: 5
+    learning_rate: 0.08
+    subsample: 0.85
+    colsample_bytree: 0.9
+    reg_alpha: 0.05
+    reg_lambda: 0.8
+    random_state: 42
+    n_jobs: -1
+    
+  # Cross-validation
+  cv:
+    n_splits: 5
+    random_state: 42
+
+# Features engineering
+features:
+  target_variable: "ead_ratio"  # EAD / Límite de crédito o exposición máxima
+  
+  # Features categóricas específicas para EAD
+  categorical_features:
+    - "grade"
+    - "sub_grade"
+    - "purpose"
+    - "home_ownership"
+    - "verification_status"
+    - "addr_state"
+    - "application_type"
+    - "credit_line_type"  # Revolving, term loan, etc.
+    
+  # Features numéricas para EAD
+  numerical_features:
+    - "loan_amnt"
+    - "funded_amnt"
+    - "credit_limit"  # Si es línea de crédito
+    - "current_balance"
+    - "available_credit"
+    - "utilization_rate"
+    - "int_rate"
+    - "annual_inc"
+    - "dti"
+    - "fico_range_low"
+    - "fico_range_high"
+    - "revol_bal"
+    - "revol_util"
+    - "total_acc"
+    - "open_acc"
+    - "inq_last_6mths"
+    - "months_since_origination"
+    
+  # Features derivadas específicas EAD
+  derived_features:
+    - "utilization_trend_3m"     # Tendencia de utilización 3 meses
+    - "utilization_trend_6m"     # Tendencia de utilización 6 meses
+    - "utilization_trend_12m"    # Tendencia de utilización 12 meses
+    - "balance_volatility"       # Volatilidad del saldo
+    - "payment_behavior_score"   # Score de comportamiento de pago
+    - "credit_hungry_indicator"  # Indicador de hambre de crédito
+    - "seasonal_pattern"         # Patrones estacionales de uso
+    - "limit_utilization_ratio"  # Ratio actual vs límite histórico
+    - "days_since_last_transaction"
+    - "transaction_frequency"    # Frecuencia de transacciones
+    - "average_transaction_size"
+    - "credit_limit_changes"     # Cambios en límite de crédito
+
+# Data processing
+data:
+  train_size: 0.7
+  val_size: 0.15
+  test_size: 0.15
+  random_state: 42
+  
+  # Solo para productos con límite de crédito variable
+  filter_condition: "credit_line_type IN ('revolving', 'loc')"
+  
+  # Target transformation
+  target_transformation: "beta"  # beta, logit, none
+  target_bounds: [0.0, 1.5]  # EAD puede exceder límite original
+  
+  # Handling missing values
+  missing_strategy:
+    numerical: "median"
+    categorical: "mode"
+    
+  # Outlier handling
+  outlier_method: "isolation_forest"
+  outlier_threshold: 0.1
+
+# Métricas de evaluación específicas para EAD
+metrics:
+  primary: "rmse"
+  secondary:
+    - "mae"
+    - "mape" 
+    - "r2_score"
+    - "mean_absolute_percentage_error"
+    
+  # Métricas específicas de EAD
+  ead_metrics:
+    - "utilization_accuracy"     # Precisión en predicción de utilización
+    - "conversion_factor_error"  # Error en factor de conversión
+    - "tail_risk_capture"        # Captura de riesgo de cola
+    - "limit_breach_prediction"  # Predicción de sobregiros
+
+# Validación específica EAD
+validation:
+  # Backtesting con ventanas móviles
+  backtesting:
+    window_months: 12
+    step_months: 3
+    min_observations: 1000
+    
+  # Stress testing
+  stress_scenarios:
+    - "economic_downturn"
+    - "interest_rate_shock"
+    - "credit_crunch"
+    - "market_volatility"
+    
+  # Benchmarking
+  benchmarks:
+    - "regulatory_ccf"      # Credit Conversion Factor regulatorio
+    - "historical_average"
+    - "peer_group_average"
+
+# Características del producto
+product_features:
+  # Tipos de líneas de crédito
+  credit_types:
+    - "credit_card"
+    - "line_of_credit"
+    - "home_equity_line"
+    - "business_loc"
+    
+  # Parámetros por tipo
+  type_specific_params:
+    credit_card:
+      typical_ccf: 0.75
+      stress_ccf: 0.85
+    line_of_credit:
+      typical_ccf: 0.50
+      stress_ccf: 0.70
+    home_equity_line:
+      typical_ccf: 0.60
+      stress_ccf: 0.80
+
+# Monitoreo EAD
+monitoring:
+  enable_drift_detection: true
+  key_metrics:
+    - "average_utilization"
+    - "ccf_stability"
+    - "limit_breach_rate"
+    - "usage_pattern_changes"
+  alert_thresholds:
+    utilization_increase: 0.10  # 10% increase triggers alert
+    ccf_deviation: 0.05         # 5% deviation triggers alert
+
+# Regulatorio - EAD específico
+regulatory:
+  basel_compliance: true
+  ccf_floors:
+    retail_revolving: 0.20
+    corporate_commitments: 0.10
+    retail_commitments: 0.05
+  stress_testing:
+    enable: true
+    scenarios: ["baseline", "adverse", "severely_adverse"]
+    horizon_years: 3
+  
+# Segmentación para EAD
+segmentation:
+  enable: true
+  segments:
+    - "high_utilizers"      # >80% utilización
+    - "moderate_utilizers"  # 20-80% utilización  
+    - "low_utilizers"       # <20% utilización
+    - "new_accounts"        # <12 meses
+    - "seasoned_accounts"   # >24 meses
