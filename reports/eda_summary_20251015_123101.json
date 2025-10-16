@@ -1,0 +1,80 @@
+{
+  "execution_timestamp": "2025-10-15T12:31:01.599306",
+  "dataset_summary": {
+    "size": 5000,
+    "columns": 22,
+    "default_rate": 0.2476,
+    "avg_risk_score": 72.09380361757106
+  },
+  "business_metrics": {
+    "total_exposure": 102346434,
+    "expected_loss": 10353015.7,
+    "roa_estimate": 0.005230991925913132
+  },
+  "recommendations": {
+    "dashboard": {
+      "kpis_principales": [
+        "Tasa de Default General (24.76%)",
+        "Exposición Total ($102.3M)",
+        "Pérdida Esperada (17.50%)",
+        "ROA Estimado (0.52%)"
+      ],
+      "segmentaciones_clave": [
+        "Por Grado de Préstamo (A-G)",
+        "Por Bracket de Ingreso (Low/Medium/High)",
+        "Por Grupo de Edad (5 categorías)",
+        "Por Intención del Préstamo (6 tipos)",
+        "Por Segmento de Riesgo (4 niveles)"
+      ],
+      "filtros_recomendados": [
+        "loan_grade",
+        "income_bracket",
+        "age_group",
+        "loan_intent",
+        "risk_segment",
+        "person_home_ownership"
+      ],
+      "metricas_drill_down": [
+        "Default rate por segmento",
+        "Exposición promedio por grupo",
+        "Distribution de risk scores",
+        "Análisis temporal de defaults"
+      ]
+    },
+    "modelos": {
+      "features_pd": [
+        "loan_amnt",
+        "debt_to_income_ratio",
+        "loan_int_rate",
+        "person_income",
+        "person_emp_length",
+        "risk_score",
+        "loan_grade",
+        "person_home_ownership"
+      ],
+      "features_lgd": [
+        "loan_grade",
+        "loan_amnt",
+        "person_income",
+        "debt_to_income_ratio",
+        "loan_intent"
+      ],
+      "features_ead": [
+        "loan_amnt",
+        "person_income",
+        "loan_percent_income",
+        "person_emp_length"
+      ],
+      "segmentacion_modelos": [
+        "Modelo diferenciado por loan_grade",
+        "Modelo específico para clientes alto valor",
+        "Modelo para diferentes loan_intent"
+      ]
+    }
+  },
+  "next_steps": [
+    "Model Training",
+    "Dashboard Development",
+    "Risk Framework Implementation"
+  ]
+}
