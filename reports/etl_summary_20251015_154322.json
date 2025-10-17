@@ -1,0 +1,22 @@
+{
+  "execution_timestamp": "2025-10-15T15:43:22.248380",
+  "source_file": "../data/raw/credit_risk_dataset.csv",
+  "output_file": "../data/processed/clean_data.csv",
+  "dashboard_file": "../data/processed/dashboard_data.csv",
+  "original_rows": 5000,
+  "final_rows": 5000,
+  "original_columns": 12,
+  "final_columns": 19,
+  "default_rate": 0.2476,
+  "variables_created": 7,
+  "data_quality": {
+    "missing_values": 0,
+    "duplicates": 0,
+    "validation_passed": true
+  },
+  "next_steps": [
+    "EDA",
+    "Dashboard",
+    "Modeling"
+  ]
+}
